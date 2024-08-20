@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Probability of Union Visualization</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/konva/8.4.3/konva.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        button, input {
+            margin-top: 10px;
+            padding: 10px 20px;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        input {
+            width: 50px;
+        }
+        #probabilities {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+Excellent observation! Let me explain why the probability of event A_i tends to decrease as i increases in this visualization.
+
+
+
+The decreasing probability as i increases is not an inherent mathematical property of the events, but rather a result of how we're generating the random probabilities in our simulation. Let's break down why this happens:
+
+1. Sequential generation: We generate the probabilities for each event sequentially, starting from A_1 and moving towards A_n.
+
+2. Remaining probability: For each new event, we generate a random probability that is a fraction of the remaining probability space.
+
+3. Decreasing available space: As we assign probabilities to earlier events, there's less probability space left for later events.
+
+Here's how the process works in our code:
+
+1. We start with a total probability space of 1 (100%).
+2. For A_1, we choose a random fraction of this entire space.
+3. For A_2, we choose a random fraction of what's left after A_1.
+4. This continues for each subsequent event.
+
+As a result, earlier events (lower i) have a higher chance of getting larger probabilities, while later events (higher i) are limited to smaller remaining probability spaces.
+
+This approach ensures that the sum of all probabilities always equals 1 (or very close to 1, accounting for floating-point arithmetic), which is a necessary condition for a valid probability space.
+
+However, it's important to note that this is just one way of simulating random mutually exclusive events. In real-world scenarios or other types of simulations, the probabilities of events wouldn't necessarily follow this decreasing pattern.
+
+If you'd like, we could modify the code to generate probabilities differently, such as:
+1. Generating all probabilities independently and then normalizing them.
+2. Using a uniform distribution for all events.
+3. Allowing for overlapping events (non-mutually exclusive).
+
+Would you like to explore any of these alternatives, or do you have any other questions about how the probabilities are generated?
+    <div class="container">
+        <h1>Probability of Union Visualization</h1>
+        <div>
+            <label for="numEvents">Number of events:</label>
+            <input type="number" id="numEvents" min="1" max="20" value="5">
+        </div>
+        <div id="visualization"></div>
+        <div id="probabilities"></div>
+        <button onclick="generateEvents()">Generate New Events</button>
+    </div>
+
+    <script>
+        const width = 400;
+        const height = 300;
+        let events = [];
+        let totalProbability = 0;
+
+        const stage = new Konva.Stage({
+            container: 'visualization',
+            width: width,
+            height: height
+        });
+
+        const layer = new Konva.Layer();
+        stage.add(layer);
+
+        function getRandomColor() {
+            const hue = Math.random() * 360;
+            return `hsl(${hue}, 70%, 80%)`;
+        }
+
+        function generateEvents() {
+            const numEvents = parseInt(document.getElementById('numEvents').value);
+            events = [];
+            let remainingProbability = 1;
+            totalProbability = 0;
+
+            for (let i = 0; i < numEvents; i++) {
+                const probability = Math.random() * remainingProbability;
+                events.push({ probability, color: getRandomColor() });
+                remainingProbability -= probability;
+                totalProbability += probability;
+            }
+
+            drawVisualization();
+            updateProbabilities();
+        }
+
+        function drawVisualization() {
+            layer.destroyChildren();
+
+            const background = new Konva.Rect({
+                width: width,
+                height: height,
+                fill: 'white',
+                stroke: 'black'
+            });
+            layer.add(background);
+
+            const eventHeight = height / events.length;
+
+            events.forEach((event, index) => {
+                const y = index * eventHeight;
+                const rect = new Konva.Rect({
+                    x: 0,
+                    y: y,
+                    width: event.probability * width,
+                    height: eventHeight,
+                    fill: event.color
+                });
+                layer.add(rect);
+
+                const text = new Konva.Text({
+                    x: 10,
+                    y: y + eventHeight / 2,
+                    text: `A${index + 1}: ${event.probability.toFixed(3)}`,
+                    fontSize: 14,
+                    fill: 'black'
+                });
+                layer.add(text);
+            });
+
+            layer.draw();
+        }
+
+        function updateProbabilities() {
+            const probabilitiesDiv = document.getElementById('probabilities');
+            const sumOfProbabilities = events.reduce((sum, event) => sum + event.probability, 0);
+            
+            let equationLeft = "P(";
+            let equationRight = "";
+            events.forEach((_, index) => {
+                if (index > 0) {
+                    equationLeft += " * ";
+                    equationRight += " + ";
+                }
+                equationLeft += `A${index + 1}`;
+                equationRight += `P(A${index + 1})`;
+            });
+            equationLeft += ")";
+
+            probabilitiesDiv.innerHTML = `
+                <p>${equationLeft} = ${totalProbability.toFixed(3)}</p>
+                <p>${equationRight} = ${sumOfProbabilities.toFixed(3)}</p>
+            `;
+        }
+
+        generateEvents();
+    </script>
+</body>
+</html>

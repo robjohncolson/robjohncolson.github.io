@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bobby Tuning Sound Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 400px;
+        }
+        input, select, button {
+            margin: 10px 0;
+            padding: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+        canvas {
+            width: 100%;
+            height: 150px;
+            margin-top: 20px;
+        }
+        #visualizer, #ballCanvas {
+            background-color: #2a2a2a;
+        }
+        #ballCanvas, #squareCanvas {
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bobby Tuning Sound Generator</h1>
+        <label for="oscillatorType">Oscillator Type:</label>
+        <select id="oscillatorType">
+            <option value="sine">Sine</option>
+            <option value="square">Square</option>
+            <option value="sawtooth">Sawtooth</option>
+            <option value="triangle">Triangle</option>
+        </select>
+
+        <label for="noteSelect">Note:</label>
+        <select id="noteSelect"></select>
+
+        <label for="duration">Note Duration (beats):</label>
+        <input type="number" id="duration" min="0.25" max="16" step="0.25" value="1">
+
+        <label for="silenceDuration">Silence Duration (beats):</label>
+        <input type="number" id="silenceDuration" min="0" max="16" step="0.25" value="0.5">
+
+        <label for="tempo">Tempo (BPM):</label>
+        <input type="number" id="tempo" min="30" max="300" step="1" value="120">
+
+        <button id="playButton" onclick="toggleContinuousPlay()">Start Continuous Play</button>
+
+        <canvas id="visualizer"></canvas>
+        <canvas id="ballCanvas" width="400" height="200"></canvas>
+        <canvas id="squareCanvas" width="400" height="200"></canvas>
+    </div>
+
+    <script>
+        let audioContext;
+        let analyser;
+        let visualizer;
+        let visualizerContext;
+        let currentNoteColor;
+        let isContinuousPlay = false;
+        let nextNoteTime = 0;
+        let schedulerTimer;
+        let ballCanvas, squareCanvas;
+        let ballContext, squareContext;
+        let lastNoteTime = 0;
+        let noteDuration = 0;
+        let silenceDuration = 0;
+        let totalDuration = 0;
+        let tempo = 120;
+        let riseGravity, fallGravity;
+        let riseInitialVelocity, fallInitialVelocity;
+
+        const noteColors = {
+            'A': '#ff9999', 'B': '#ffcc99', 'C': '#ffff99', 'D': '#99ff99',
+            'E': '#99ccff', 'F': '#cc99ff', 'G': '#ff99ff'
+        };
+
+        function calculateBobbyTuning() {
+            const baseFrequency = 440 * (1 - (6 / 330)); // A4 in Bobby Tuning
+            const bobbyFrequencies = {};
+            const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+            const startOctave = 2;
+            const endOctave = 6;
+
+            for (let octave = startOctave; octave <= endOctave; octave++) {
+                notes.forEach((note, index) => {
+                    const noteName = `${note}${octave}`;
+                    const semitonesFromA4 = (octave - 4) * 12 + (index - notes.indexOf('A'));
+                    bobbyFrequencies[noteName] = baseFrequency * Math.pow(2, semitonesFromA4 / 12);
+                });
+            }
+
+            return bobbyFrequencies;
+        }
+
+        const bobbyFrequencies = calculateBobbyTuning();
+
+        function populateNoteSelect() {
+            const noteSelect = document.getElementById('noteSelect');
+            noteSelect.innerHTML = '';
+            for (const note in bobbyFrequencies) {
+                const option = document.createElement('option');
+                option.value = note;
+                option.textContent = `${note} (${bobbyFrequencies[note].toFixed(2)} Hz)`;
+                noteSelect.appendChild(option);
+            }
+            updateFrequency();
+        }
+
+        function updateFrequency() {
+            const noteSelect = document.getElementById('noteSelect');
+            currentNoteColor = noteColors[noteSelect.value[0]];
+        }
+
+        function initializeVisualizer() {
+            visualizer = document.getElementById('visualizer');
+            visualizerContext = visualizer.getContext('2d');
+            visualizer.width = visualizer.offsetWidth;
+            visualizer.height = visualizer.offsetHeight;
+
+            ballCanvas = document.getElementById('ballCanvas');
+            ballContext = ballCanvas.getContext('2d');
+
+            squareCanvas = document.getElementById('squareCanvas');
+            squareContext = squareCanvas.getContext('2d');
+        }
+
+        function drawVisualization() {
+            requestAnimationFrame(drawVisualization);
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteTimeDomainData(dataArray);
+
+            visualizerContext.fillStyle = '#2a2a2a';
+            visualizerContext.fillRect(0, 0, visualizer.width, visualizer.height);
+            visualizerContext.lineWidth = 2;
+            visualizerContext.strokeStyle = currentNoteColor || '#ffffff';
+            visualizerContext.beginPath();
+
+            const sliceWidth = visualizer.width * 1.0 / bufferLength;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = v * visualizer.height / 2;
+
+                if (i === 0) {
+                    visualizerContext.moveTo(x, y);
+                } else {
+                    visualizerContext.lineTo(x, y);
+                }
+
+                x += sliceWidth;
+            }
+
+            visualizerContext.lineTo(visualizer.width, visualizer.height / 2);
+            visualizerContext.stroke();
+
+            // Draw bouncing ball and square
+            drawBouncingBall();
+            drawBouncingSquare();
+        }
+
+        function calculateKinematicParameters() {
+            const beatDuration = 60 / tempo;
+            const noteDurationSeconds = noteDuration * beatDuration;
+            const silenceDurationSeconds = silenceDuration * beatDuration;
+            const maxHeight = 180; // pixels
+
+            // Calculate parameters for rising motion
+            riseGravity = (2 * maxHeight) / (noteDurationSeconds * noteDurationSeconds);
+            riseInitialVelocity = riseGravity * noteDurationSeconds;
+
+            // Calculate parameters for falling motion
+            fallGravity = (2 * maxHeight) / (silenceDurationSeconds * silenceDurationSeconds);
+            fallInitialVelocity = 0; // Start falling from rest at the highest point
+        }
+
+        function drawBouncingBall() {
+            const currentTime = audioContext.currentTime;
+            const beatDuration = 60 / tempo;
+            const noteDurationSeconds = noteDuration * beatDuration;
+            const silenceDurationSeconds = silenceDuration * beatDuration;
+            const totalDurationSeconds = noteDurationSeconds + silenceDurationSeconds;
+            const cycleTime = (currentTime - lastNoteTime) % totalDurationSeconds;
+            
+            let ballY;
+            if (cycleTime <= noteDurationSeconds) {
+                // Rising during note duration
+                const t = cycleTime;
+                ballY = 190 - (riseInitialVelocity * t - 0.5 * riseGravity * t * t);
+            } else {
+                // Falling during silence
+                const t = cycleTime - noteDurationSeconds;
+                ballY = 10 + (0.5 * fallGravity * t * t);
+            }
+
+            // Clear canvas with dark background
+            ballContext.fillStyle = '#2a2a2a';
+            ballContext.fillRect(0, 0, ballCanvas.width, ballCanvas.height);
+
+            // Draw ball
+            ballContext.beginPath();
+            ballContext.arc(ballCanvas.width / 2, ballY, 10, 0, 2 * Math.PI);
+            ballContext.fillStyle = currentNoteColor || '#ffffff';
+            ballContext.fill();
+
+            // Draw ground line
+            ballContext.beginPath();
+            ballContext.moveTo(0, 190);
+            ballContext.lineTo(400, 190);
+            ballContext.strokeStyle = '#ffffff';
+            ballContext.stroke();
+        }
+
+        function drawBouncingSquare() {
+            const currentTime = audioContext.currentTime;
+            const beatDuration = 60 / tempo;
+            const progress = (currentTime % beatDuration) / beatDuration;
+            
+            // Adjust the sine wave to have its minimum at 0
+            const squareY = 190 - 180 * Math.abs(Math.sin(Math.PI * progress));
+
+            // Clear canvas with inverted background color
+            squareContext.fillStyle = invertColor('#2a2a2a');
+            squareContext.fillRect(0, 0, squareCanvas.width, squareCanvas.height);
+
+            // Draw square
+            squareContext.fillStyle = invertColor(currentNoteColor || '#ffffff');
+            squareContext.fillRect(squareCanvas.width / 2 - 10, squareY - 10, 20, 20);
+
+            // Draw ground line
+            squareContext.beginPath();
+            squareContext.moveTo(0, 200);
+            squareContext.lineTo(400, 200);
+            squareContext.strokeStyle = '#000000';
+            squareContext.stroke();
+        }
+
+        function invertColor(hex) {
+            if (hex.indexOf('#') === 0) {
+                hex = hex.slice(1);
+            }
+            // convert 3-digit hex to 6-digits.
+            if (hex.length === 3) {
+                hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+            }
+            if (hex.length !== 6) {
+                throw new Error('Invalid HEX color.');
+            }
+            // invert color components
+            var r = (255 - parseInt(hex.slice(0, 2), 16)).toString(16),
+                g = (255 - parseInt(hex.slice(2, 4), 16)).toString(16),
+                b = (255 - parseInt(hex.slice(4, 6), 16)).toString(16);
+            // pad each with zeros and return
+            return "#" + padZero(r) + padZero(g) + padZero(b);
+        }
+
+        function padZero(str, len) {
+            len = len || 2;
+            var zeros = new Array(len).join('0');
+            return (zeros + str).slice(-len);
+        }
+
+        function scheduleNote(time, duration) {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.type = document.getElementById('oscillatorType').value;
+            const noteSelect = document.getElementById('noteSelect');
+            oscillator.frequency.value = bobbyFrequencies[noteSelect.value];
+
+            gainNode.gain.setValueAtTime(0.5, time);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, time + duration - 0.1);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(analyser);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.start(time);
+            oscillator.stop(time + duration);
+
+            // Update lastNoteTime for the bouncing ball
+            lastNoteTime = time;
+        }
+
+        function scheduler() {
+            while (nextNoteTime < audioContext.currentTime + 0.1) {
+                tempo = parseFloat(document.getElementById('tempo').value);
+                noteDuration = parseFloat(document.getElementById('duration').value);
+                silenceDuration = parseFloat(document.getElementById('silenceDuration').value);
+                
+                const beatDuration = 60 / tempo;
+                const noteDurationSeconds = noteDuration * beatDuration;
+
+                calculateKinematicParameters();
+                scheduleNote(nextNoteTime, noteDurationSeconds);
+                nextNoteTime += (noteDuration + silenceDuration) * beatDuration;
+            }
+            schedulerTimer = setTimeout(scheduler, 25);
+        }
+
+        function toggleContinuousPlay() {
+            const playButton = document.getElementById('playButton');
+            
+            if (isContinuousPlay) {
+                clearTimeout(schedulerTimer);
+                isContinuousPlay = false;
+                playButton.textContent = 'Start Continuous Play';
+            } else {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    analyser.connect(audioContext.destination);
+                    initializeVisualizer();
+                    drawVisualization();
+                }
+
+                tempo = parseFloat(document.getElementById('tempo').value);
+                noteDuration = parseFloat(document.getElementById('duration').value);
+                silenceDuration = parseFloat(document.getElementById('silenceDuration').value);
+                
+                if (isNaN(tempo) || isNaN(noteDuration) || isNaN(silenceDuration)) {
+                    alert('Please enter valid numbers for tempo, note duration, and silence duration.');
+                    return;
+                }
+
+                if (tempo < 30 || tempo > 300) {
+                    alert('Tempo must be between 30 and 300 BPM.');
+                    return;
+                }
+
+                nextNoteTime = audioContext.currentTime;
+                lastNoteTime = nextNoteTime;
+                calculateKinematicParameters();
+                scheduler();
+
+                isContinuousPlay = true;
+                playButton.textContent = 'Stop Continuous Play';
+            }
+        }
+
+        // Initialize the note select dropdown
+        document.getElementById('noteSelect').addEventListener('change', updateFrequency);
+        populateNoteSelect();
+    </script>
+</body>
+</html>
+</antArt

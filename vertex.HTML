@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>n-sided Polygon with Labeled Vertices and Lines</title>
+</head>
+<body>
+    <canvas id="myCanvas" width="500" height="500"></canvas>
+    <script>
+        const canvas = document.getElementById('myCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 200;
+        const sides = 5;
+
+        function drawPolygon() {
+            ctx.beginPath();
+            for (let i = 0; i < sides; i++) {
+                const angle = (i / sides) * 2 * Math.PI;
+                const x = centerX + radius * Math.cos(angle);
+                const y = centerY + radius * Math.sin(angle);
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.strokeStyle = 'lightgrey';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        function connectVertices() {
+            let lineCount = 0;
+            let labels = [];
+            let highestLineCoords = null;
+
+            for (let i = 0; i < sides; i++) {
+                const angle1 = (i / sides) * 2 * Math.PI;
+                const x1 = centerX + radius * Math.cos(angle1);
+                const y1 = centerY + radius * Math.sin(angle1);
+
+                for (let j = i + 1; j < sides; j++) {
+                    const angle2 = (j / sides) * 2 * Math.PI;
+                    const x2 = centerX + radius * Math.cos(angle2);
+                    const y2 = centerY + radius * Math.sin(angle2);
+
+                    ctx.beginPath();
+                    ctx.moveTo(x1, y1);
+                    ctx.lineTo(x2, y2);
+                    ctx.strokeStyle = 'rgba(0, 0, 255, 0.1)';
+                    ctx.stroke();
+
+                    lineCount++;
+
+                    if (lineCount % 1 === 0) {
+                        const midX = (x1 + x2) / 2;
+                        const midY = (y1 + y2) / 2;
+                        labels.push({x: midX, y: midY, text: lineCount.toString(), isHighest: false});
+                        highestLineCoords = {x1, y1, x2, y2, midX, midY};
+                    }
+                }
+            }
+
+            // Highlight the highest line number
+            if (highestLineCoords) {
+                ctx.beginPath();
+                ctx.moveTo(highestLineCoords.x1, highestLineCoords.y1);
+                ctx.lineTo(highestLineCoords.x2, highestLineCoords.y2);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 1)'; // Light green, less saturated
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                
+                // Add subtle glow effect to the line
+                ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
+                ctx.shadowBlur = 10;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Reset shadow
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+
+                labels[labels.length - 1].isHighest = true;
+                labels[labels.length - 1].x = highestLineCoords.midX;
+                labels[labels.length - 1].y = highestLineCoords.midY;
+            }
+
+            // Force-directed algorithm to spread out labels
+            for (let i = 0; i < 50; i++) {
+                for (let a = 0; a < labels.length; a++) {
+                    for (let b = 0; b < labels.length; b++) {
+                        if (a !== b) {
+                            let dx = labels[a].x - labels[b].x;
+                            let dy = labels[a].y - labels[b].y;
+                            let distance = Math.sqrt(dx * dx + dy * dy);
+                            if (distance < 40) {
+                                labels[a].x += dx / distance * 2;
+                                labels[a].y += dy / distance * 2;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Draw labels
+            labels.forEach(label => {
+                if (label.isHighest) {
+                    ctx.font = '50px Courier';
+                    ctx.fillStyle = 'rgb(0, 128, 0)'; // Bright green for the label
+                    
+                    // Add text glow
+                    ctx.shadowColor = 'rgb(0, 128, 0)';
+                    ctx.shadowBlur = 10;
+                } else {
+                    ctx.font = '18px Arial';
+                    ctx.fillStyle = 'rgba(0, 128, 0, 0.8)'; // Green for other numbers
+                    ctx.shadowColor = 'transparent';
+                    ctx.shadowBlur = 0;
+                }
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(label.text, label.x, label.y);
+            });
+            
+            // Reset shadow
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+        }
+
+        function labelVertices() {
+            ctx.font = 'bold 14px Arial';
+            ctx.fillStyle = 'red';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            for (let i = 0; i < sides; i++) {
+                const angle = (i / sides) * 2 * Math.PI;
+                const labelRadius = radius + 30;
+                const x = centerX + labelRadius * Math.cos(angle);
+                const y = centerY + labelRadius * Math.sin(angle);
+
+                ctx.fillText((i + 1).toString(), x, y);
+            }
+        }
+
+        drawPolygon();
+        connectVertices();
+        labelVertices();
+    </script>
+</body>
+</html>

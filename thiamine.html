@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chemical Production Locations Map and Information</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        #vitamin-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #map-container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto 30px;
+        }
+        .info-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .text-box {
+            width: 30%;
+            white-space: pre-wrap;
+            font-family: monospace;
+            background-color: #f4f4f4;
+            padding: 20px;
+            border-radius: 5px;
+            font-size: 12px;
+            height: 500px;
+            overflow-y: auto;
+        }
+        .arrow {
+            width: 5%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 48px;
+            color: #333;
+        }
+        .final-product {
+            width: 20%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chemical Production Locations Map and Detailed Information</h1>
+    
+    <div id="vitamin-title">Vitamin B1 (supplement)</div>
+    
+    <div id="map-container">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 500">
+            <!-- World map (simplified) -->
+            <path d="M150,130 q300,-60 600,0 q60,90 60,180 q-300,60 -600,0 q-60,-90 -60,-180 z" fill="#f0f0f0" stroke="#a0a0a0" stroke-width="2"/>
+            
+            <!-- Production locations -->
+            <g id="locations">
+                <circle cx="750" cy="200" r="10" fill="#ff5733"/>
+                <text x="765" y="205" font-size="12">China</text>
+                
+                <circle cx="480" cy="150" r="10" fill="#33ff57"/>
+                <text x="495" y="155" font-size="12">Germany</text>
+                
+                <circle cx="820" cy="180" r="10" fill="#3357ff"/>
+                <text x="835" y="185" font-size="12">Japan</text>
+                
+                <circle cx="230" cy="180" r="10" fill="#ff33f1"/>
+                <text x="245" y="185" font-size="12">USA</text>
+                
+                <circle cx="650" cy="120" r="10" fill="#33fff1"/>
+                <text x="665" y="125" font-size="12">Russia</text>
+                
+                <circle cx="570" cy="230" r="10" fill="#fff133"/>
+                <text x="585" y="235" font-size="12">Saudi Arabia</text>
+                
+                <circle cx="230" cy="130" r="10" fill="#ff8033"/>
+                <text x="245" y="135" font-size="12">Canada</text>
+                
+                <circle cx="280" cy="260" r="10" fill="#33ffa1"/>
+                <text x="295" y="265" font-size="12">Trinidad and Tobago</text>
+                
+                <circle cx="650" cy="230" r="10" fill="#a133ff"/>
+                <text x="665" y="235" font-size="12">India</text>
+                
+                <circle cx="750" cy="280" r="10" fill="#ff3333"/>
+                <text x="765" y="285" font-size="12">Indonesia</text>
+            </g>
+            
+            <!-- Legend -->
+            <g id="legend" transform="translate(20, 350)">
+                <text x="0" y="0" font-size="14" font-weight="bold">Chemicals Produced:</text>
+                <circle cx="10" cy="20" r="5" fill="#ff5733"/>
+                <text x="20" y="25" font-size="12">Calcium Cyanamide, Ammonia, Carbon Monoxide</text>
+                <circle cx="10" cy="40" r="5" fill="#33ff57"/>
+                <text x="20" y="45" font-size="12">Calcium Cyanamide, Carbon Monoxide</text>
+                <circle cx="10" cy="60" r="5" fill="#3357ff"/>
+                <text x="20" y="65" font-size="12">Calcium Cyanamide</text>
+                <circle cx="10" cy="80" r="5" fill="#ff33f1"/>
+                <text x="20" y="85" font-size="12">Hydrogen Sulfide, Methanol, Ammonia, Carbon Monoxide, Elemental Sulfur</text>
+                <circle cx="10" cy="100" r="5" fill="#33fff1"/>
+                <text x="20" y="105" font-size="12">Hydrogen Sulfide, Methanol, Ammonia, Elemental Sulfur</text>
+                <circle cx="10" cy="120" r="5" fill="#fff133"/>
+                <text x="20" y="125" font-size="12">Hydrogen Sulfide, Methanol, Elemental Sulfur</text>
+                <text x="0" y="145" font-size="12">Note: Ammonium Sulfide is produced globally where needed</text>
+            </g>
+            
+            <text x="500" y="30" font-size="20" text-anchor="middle" font-weight="bold">World Map of Chemical Production Locations</text>
+        </svg>
+    </div>
+    
+    <div class="info-container">
+        <div class="text-box">
+1. Calcium Cyanamide (CaCNÇ)
+Manufacturing Process:
+Calcium cyanamide is produced by reacting calcium carbide (CaCÇ) with nitrogen gas (NÇ) at high temperatures. This process is known as the Frank-Caro process.
+Chemical Reaction:
+CaCÇ + NÇ í CaCNÇ + C
+Sourcing and Production Locations:
+Major producers are located in countries with strong chemical manufacturing industries, such as China, Germany, and Japan. Calcium carbide, the key input, is often sourced from regions with abundant coal resources, as it is derived from coke (a form of carbon) and lime.
+
+2. Hydrogen Sulfide (HÇS)
+Manufacturing Process:
+Hydrogen sulfide is often produced as a by-product of petroleum refining, natural gas processing, and the desulfurization of fossil fuels.
+It can also be manufactured by reacting hydrogen gas (HÇ) with elemental sulfur (S) at high temperatures.
+Chemical Reaction:
+HÇ + S í HÇS
+Sourcing and Production Locations:
+Hydrogen sulfide is primarily produced and recovered in countries with large oil and gas industries, such as the United States, Russia, Saudi Arabia, and Canada.
+
+3. Ammonium Sulfide ((NHÑ)ÇS)
+Manufacturing Process:
+Ammonium sulfide is typically produced by bubbling hydrogen sulfide (HÇS) gas through a solution of ammonium hydroxide (NHÑOH).
+Chemical Reaction:
+HÇS + 2NHÉ í (NHÑ)ÇS
+Sourcing and Production Locations:
+This compound is usually produced in situ where needed, due to its instability and tendency to decompose. The raw materials, such as ammonium hydroxide and hydrogen sulfide, are sourced from the chemical and petrochemical industries.
+
+4. Methanol (CHÉOH)
+Manufacturing Process:
+Methanol is produced from natural gas (methane) through a process called steam methane reforming, followed by methanol synthesis.
+Chemical Reaction:
+CHÑ + HÇO í CO + 3HÇ (Reforming)
+CO + 2HÇ í CHÉOH (Methanol Synthesis)
+Sourcing and Production Locations:
+Major methanol producers are found in regions rich in natural gas, such as the United States, Trinidad and Tobago, Saudi Arabia, and Russia.
+
+5. Ammonia (NHÉ)
+Manufacturing Process:
+Ammonia is produced via the Haber-Bosch process, which involves the direct synthesis of ammonia from nitrogen (NÇ) and hydrogen (HÇ) gases under high pressure and temperature with an iron catalyst.
+Chemical Reaction:
+NÇ + 3HÇ í 2NHÉ
+Sourcing and Production Locations:
+Ammonia is produced globally, with major production in countries such as China, India, the United States, Russia, and Indonesia. The hydrogen used is often sourced from natural gas.
+
+6. Carbon Monoxide (CO)
+Manufacturing Process:
+Carbon monoxide is produced industrially by the partial oxidation of carbon-containing fuels, such as natural gas, coal, or biomass. It can also be a by-product of steel production.
+Chemical Reaction:
+2C + OÇ í 2CO
+Sourcing and Production Locations:
+Carbon monoxide is typically produced in regions with large steel, chemical, or petrochemical industries, such as China, the United States, and Germany.
+
+7. Elemental Sulfur (S)
+Sourcing:
+Elemental sulfur is primarily obtained as a by-product of the desulfurization of natural gas and petroleum, which removes sulfur compounds to reduce pollution and corrosion.
+Production Locations:
+Major producers include the United States, Canada, Russia, and Saudi Arabia, where it is recovered in large quantities during oil and gas processing.
+
+Summary of Sourcing:
+Petrochemical Industry: Many of the precursors, such as methanol, ammonia, and hydrogen sulfide, are derived from processes tied to the petrochemical industry, which is concentrated in regions rich in oil and natural gas.
+Chemical Manufacturing: Key chemicals like calcium cyanamide, thiourea, and formamide are produced in chemical manufacturing hubs around the world, with major production centers in China, Europe, and the United States.
+Global Production: The sourcing and manufacturing of these precursors are distributed globally, often in countries with robust industrial and chemical sectors, large natural resource reserves, and established infrastructure for large-scale chemical production.</div>
+        <div class="arrow">°</div>
+        <div class="text-box">
+The chemical precursors used in the synthesis of thiamine (vitamin B1) are themselves produced through industrial chemical processes. Here's a brief overview of how each of these key precursors is typically manufactured:
+### 1. **Thiourea**:
+   - **Manufacturing Process**: Thiourea is commonly produced by the reaction of calcium cyanamide with hydrogen sulfide or ammonium sulfide.
+   - **Chemical Reaction**: 
+     - **Calcium Cyanamide Route**: 
+       [
+       CaCNÇ + HÇO + HÇS í CaS + (NHÇ)ÇCS
+       ]
+     - This reaction produces thiourea, often followed by purification through recrystallization.
+### 2. **Acetaldehyde**:
+   - **Manufacturing Process**: Acetaldehyde is primarily produced by the oxidation of ethylene in the presence of a palladium or copper catalyst.
+   - **Chemical Reaction**:
+     - **Wacker Process**: 
+       [
+       CÇHÑ + OÇ í CHÉCHO
+       ]
+     - This is an efficient process that yields acetaldehyde directly from ethylene.
+### 3. **Aminoacetaldehyde Diethylacetal**:
+   - **Manufacturing Process**: This compound is typically synthesized by the reaction of acetaldehyde with ammonia, followed by treatment with an alcohol, such as ethanol, under acidic conditions.
+   - **Chemical Reaction**:
+     - **Formation of Acetal**:
+       [
+       CHÉCHO + NHÉ + 2CÇHÖOH í (CHÉCH(NHÇ)OCHÇCHÉ)OCHÇCHÉ
+       ]
+     - The product, aminoacetaldehyde diethylacetal, is then purified by distillation.
+### 4. **Formamide**:
+   - **Manufacturing Process**: Formamide is produced by the reaction of carbon monoxide (CO) and ammonia (NHÉ) under high pressure and temperature.
+   - **Chemical Reaction**:
+     - **Ammonia Carbonylation**:
+       [
+       CO + NHÉ í HCONHÇ
+       ]
+     - This is followed by purification through distillation.
+### 5. **Hydroxymethylpyrimidine (HMP)**:
+   - **Manufacturing Process**: HMP can be synthesized through various routes, but one common method involves the reaction of 2-chloroacetaldehyde with urea.
+   - **Chemical Reaction**:
+     - **Chloroacetaldehyde Route**:
+       [
+       ClCHÇCHO + HÇNCONHÇ í HMP
+       ]
+     - This reaction yields hydroxymethylpyrimidine, which is then isolated and purified.
+### 6. **Methylamine**:
+   - **Manufacturing Process**: Methylamine is typically produced by the reaction of methanol with ammonia.
+   - **Chemical Reaction**:
+     - **Methanol Ammonolysis**:
+       [
+       CHÉOH + NHÉ í CHÉNHÇ + HÇO
+       ]
+     - This reaction occurs in the gas phase over a catalyst such as silica-alumina, and methylamine is collected and purified by distillation.
+### 7. **Cyanamide**:
+   - **Manufacturing Process**: Cyanamide is produced by the reaction of calcium cyanamide with water.
+   - **Chemical Reaction**:
+     - **Hydration of Calcium Cyanamide**:
+       [
+       CaCNÇ + HÇO í Ca(OH)Ç + CHÇNÇ
+       ]
+     - The product, cyanamide, can be isolated and purified for further use.
+### Summary:
+Each of these chemical precursors is manufactured through industrial processes involving relatively simple starting materials, often derived from petrochemical sources. These processes are designed to be efficient, scalable, and cost-effective, allowing for the large-scale production of the precursors needed for the synthesis of thiamine and other chemicals.</div>
+        <div class="arrow">°</div>
+        <div class="final-product">
+            Vitamin B1<br>(Thiamine)
+        </div>
+    </div>
+</body>
+</html>
