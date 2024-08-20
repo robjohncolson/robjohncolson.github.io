@@ -1,0 +1,25 @@
+body {
+    background-color: silver;
+    }
+    
+    .header {
+        display: flex;
+        justify-content: center;
+        margin: 8px;
+    }
+    
+    .container {
+        display: flex;
+        
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    
+    .item {
+        flex: 1;
+    }
+    
+    ul {
+        list-style-type: none;
+    }
+    
