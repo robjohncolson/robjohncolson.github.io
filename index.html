@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <style>
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background: linear-gradient(135deg, #2a2a72, #009ffd); /* Neon gradient background */
+            color: #ffffff; /* White text for high contrast */
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 5% auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); /* Neon glow effect */
+        }
+        h1 {
+            color: #ff0081; /* Neon Pink */
+            margin-bottom: 1em;
+            font-size: 36px; /* Large font size for impact */
+            text-shadow: 0 0 5px #ff0081, 0 0 10px #ff0081; /* Neon text glow */
+        }
+        .links {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+            gap: 1em; /* Spacing between links */
+        }
+        .link-wrapper {
+            width: 70%; /* Adjust width for layout */
+            max-width: 400px;
+        }
+        a {
+            display: block;
+            padding: 15px;
+            text-decoration: none;
+            color: #000000; /* Black text for contrast */
+            background: linear-gradient(135deg, #ff0081, #ff8c00); /* Neon gradient background */
+            border-radius: 5px;
+            font-size: 20px; /* Larger font size for readability */
+            font-weight: bold;
+            text-align: center;
+            transition: background 0.3s, transform 0.3s;
+            box-shadow: 0 0 10px rgba(255, 105, 180, 0.8); /* Neon button glow */
+        }
+        a:hover {
+            background: linear-gradient(135deg, #ff8c00, #ff0081); /* Reversed gradient on hover */
+            transform: scale(1.05); /* Slightly scale up on hover */
+        }
+        .credits {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #b0b0b0; /* Light gray for credits */
+        }
+        .credits p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Homepage</h1>
+        <div class="links">
+            <div class="link-wrapper"><a href="recipes\index.html">Recipes</a></div>
+            <div class="link-wrapper"><a href="blockchain.html">Blockchain</a></div>
+            <div class="link-wrapper"><a href="sunorobmath.mp3">Sunorobmath</a></div>
+            <div class="link-wrapper"><a href="thiamine.html">Thiamine</a></div>
+            <div class="link-wrapper"><a href="probability.html">Probability</a></div>
+            <div class="link-wrapper"><a href="vertex.html">Vertex</a></div>
+        </div>
+        <div class="credits">
+            <p>Design and Creative Direction by <strong>Bobby</strong></p>
+            <p>Technical Implementation by <strong>Aether</strong> – An advanced AI assistant developed by OpenAI</p>
+        </div>
+    </div>
+</body>
+</html>
+
