@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        #gameContainer {
+            text-align: center;
+        }
+        canvas {
+            border: 2px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <h1>Tetris</h1>
+        <canvas id="tetris" width="240" height="400"></canvas>
+        <p>Score: <span id="score">0</span></p>
+        <p id="gameOver" style="display: none;">Game Over! Press R to restart.</p>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('tetris');
+        const context = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const gameOverElement = document.getElementById('gameOver');
+
+        const BLOCK_SIZE = 20;
+        const GRID_WIDTH = canvas.width / BLOCK_SIZE;
+        const GRID_HEIGHT = canvas.height / BLOCK_SIZE;
+
+        const COLORS = [
+            null,
+            '#FF0000', // Z-Tetromino
+            '#00FF00', // S-Tetromino
+            '#0000FF', // J-Tetromino
+            '#FFFF00', // O-Tetromino
+            '#FFA500', // L-Tetromino
+            '#800080', // T-Tetromino
+            '#00FFFF'  // I-Tetromino
+        ];
+
+        const SHAPES = [
+            [[1, 1, 1], [0, 1, 0]], // T-Tetromino
+            [[0, 0, 2], [2, 2, 2]], // L-Tetromino
+            [[3, 0, 0], [3, 3, 3]], // J-Tetromino
+            [[4, 4], [4, 4]],       // O-Tetromino
+            [[0, 5, 5], [5, 5, 0]], // S-Tetromino
+            [[6, 6, 0], [0, 6, 6]], // Z-Tetromino
+            [[7, 7, 7, 7]]          // I-Tetromino
+        ];
+
+        let grid = createGrid();
+        let score = 0;
+        let gameOver = false;
+        let currentPiece = null;
+        let currentX = 0;
+        let currentY = 0;
+        let speed = 1000;  // Initial speed (milliseconds per drop)
+        let dropCounter = 0;  // Counter for timing drops
+        let lastTime = 0;  // Timestamp for last frame
+
+        function createGrid() {
+            return Array.from({ length: GRID_HEIGHT }, () => Array(GRID_WIDTH).fill(0));
+        }
+
+        function drawBlock(x, y, color) {
+            context.fillStyle = color;
+            context.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+            context.strokeStyle = '#000';
+            context.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+        }
+
+        function drawGrid() {
+            grid.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    drawBlock(x, y, value ? COLORS[value] : '#000');
+                });
+            });
+        }
+
+        function drawPiece() {
+            currentPiece.shape.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        drawBlock(currentX + x, currentY + y, COLORS[currentPiece.color]);
+                    }
+                });
+            });
+        }
+
+        function newPiece() {
+            const shapeIndex = Math.floor(Math.random() * SHAPES.length);
+            const colorIndex = shapeIndex + 1;
+            currentPiece = { shape: SHAPES[shapeIndex], color: colorIndex };
+            currentX = Math.floor(GRID_WIDTH / 2) - Math.ceil(currentPiece.shape[0].length / 2);
+            currentY = 0;
+
+            if (!isValidMove(0, 0)) {
+                gameOver = true;
+            }
+        }
+
+        function isValidMove(offsetX, offsetY, shape = currentPiece.shape) {
+            return shape.every((row, y) => {
+                return row.every((value, x) => {
+                    let newX = currentX + x + offsetX;
+                    let newY = currentY + y + offsetY;
+                    return (
+                        value === 0 ||
+                        (newX >= 0 &&
+                         newX < GRID_WIDTH &&
+                         newY < GRID_HEIGHT &&
+                         (newY < 0 || grid[newY][newX] === 0))
+                    );
+                });
+            });
+        }
+
+        function rotate() {
+            const rotated = currentPiece.shape[0].map((_, i) =>
+                currentPiece.shape.map(row => row[i]).reverse()
+            );
+            if (isValidMove(0, 0, rotated)) {
+                currentPiece.shape = rotated;
+            }
+        }
+
+        function drop() {
+            if (isValidMove(0, 1)) {
+                currentY++;
+            } else {
+                freeze();
+                clearLines();
+                newPiece();
+            }
+        }
+
+        function freeze() {
+            currentPiece.shape.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        grid[currentY + y][currentX + x] = currentPiece.color;
+                    }
+                });
+            });
+        }
+
+        function clearLines() {
+            let linesCleared = 0;
+            grid = grid.filter(row => {
+                if (row.every(cell => cell !== 0)) {
+                    linesCleared++;
+                    return false;
+                }
+                return true;
+            });
+
+            while (grid.length < GRID_HEIGHT) {
+                grid.unshift(Array(GRID_WIDTH).fill(0));
+            }
+
+            score += linesCleared * 100;
+            scoreElement.textContent = score;
+
+            // Increase speed slightly for each cleared line
+            if (linesCleared > 0) {
+                speed = Math.max(100, speed - linesCleared * 50);  // Decrease speed but not below 100ms
+            }
+        }
+
+        function quickDrop() {
+            while (isValidMove(0, 1)) {
+                currentY++;
+            }
+            drop();
+        }
+
+        function draw() {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            drawPiece();
+        }
+
+        function gameLoop(time = 0) {
+            const deltaTime = time - lastTime;
+            lastTime = time;
+
+            dropCounter += deltaTime;
+            if (dropCounter > speed) {
+                drop();
+                dropCounter = 0;
+            }
+
+            if (!gameOver) {
+                draw();
+                requestAnimationFrame(gameLoop);
+            } else {
+                gameOverElement.style.display = 'block';
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (!gameOver) {
+                switch(event.keyCode) {
+                    case 37: // Left arrow
+                        if (isValidMove(-1, 0)) currentX--;
+                        break;
+                    case 39: // Right arrow
+                        if (isValidMove(1, 0)) currentX++;
+                        break;
+                    case 40: // Down arrow
+                        drop();
+                        break;
+                    case 38: // Up arrow
+                        rotate();
+                        break;
+                    case 32: // Spacebar
+                        quickDrop();
+                        break;
+                }
+            } else if (event.keyCode === 82) { // 'R' key
+                restartGame();
+            }
+            draw();
+        }
+
+        function restartGame() {
+            grid = createGrid();
+            score = 0;
+            gameOver = false;
+            speed = 1000;  // Reset speed to initial value
+            scoreElement.textContent = '0';
+            gameOverElement.style.display = 'none';
+            newPiece();
+            lastTime = 0;  // Reset the lastTime
+            gameLoop();
+        }
+
+        document.addEventListener('keydown', handleKeyPress);
+
+        newPiece();
+        gameLoop();
+    </script>
+</body>
+</html>
