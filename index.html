@@ -32,11 +32,12 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 60vh;
-            gap: 1em; /* Spacing between links */
+            height: auto; /* Adjust to auto for better flexibility */
+            gap: 1.5em; /* Increased spacing between links */
+            margin-bottom: 2em; /* Added margin to prevent collision with credits */
         }
         .link-wrapper {
-            width: 70%; /* Adjust width for layout */
+            width: 80%; /* Adjusted width for layout */
             max-width: 400px;
         }
         a {
@@ -57,7 +58,7 @@
             transform: scale(1.05); /* Slightly scale up on hover */
         }
         .credits {
-            margin-top: 20px;
+            margin-top: 30px; /* Increased margin to add space between links and credits */
             font-size: 14px;
             color: #b0b0b0; /* Light gray for credits */
         }
@@ -70,8 +71,7 @@
     <div class="container">
         <h1>Welcome to the Homepage</h1>
         <div class="links">
-            <div class="link-wrapper"><a href="clock.html">clock</a></div>
-
+            <div class="link-wrapper"><a href="clock.html">Clock</a></div>
             <div class="link-wrapper"><a href="tetris.html">Tetris</a></div>
             <div class="link-wrapper"><a href="recipes.html">Recipes</a></div>
             <div class="link-wrapper"><a href="blockchain.html">Blockchain</a></div>
@@ -88,4 +88,3 @@
     </div>
 </body>
 </html>
-
