@@ -1,4 +1,3 @@
-// arkanoid.cpp
 #include <emscripten.h>
 #include <SDL2/SDL.h>
 #include <vector>
@@ -27,6 +26,9 @@ public:
     void handleEvents();
     void update();
     void render();
+    void runMainLoop();
+
+    static void mainloop(void* arg);
 
 private:
     SDL_Window* window = nullptr;
@@ -36,19 +38,25 @@ private:
     std::vector<GameObject> bricks;
     int ballSpeedX = 5;
     int ballSpeedY = -5;
+    int windowWidth = SCREEN_WIDTH;
+    int windowHeight = SCREEN_HEIGHT;
+    bool quit = false;
 
     void createBricks();
+    void scaleBricks();
 };
-
-Game* game = nullptr;
 
 Game::Game() {
     srand(static_cast<unsigned>(time(nullptr)));
 }
 
 Game::~Game() {
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
+    if (renderer) {
+        SDL_DestroyRenderer(renderer);
+    }
+    if (window) {
+        SDL_DestroyWindow(window);
+    }
     SDL_Quit();
 }
 
@@ -57,7 +65,11 @@ bool Game::init() {
         return false;
     }
 
-    window = SDL_CreateWindow("Arkanoid WASM", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    SDL_DisplayMode current;
+    SDL_GetCurrentDisplayMode(0, &current);
+
+    window = SDL_CreateWindow("Arkanoid WASM", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 
+                              current.w, current.h, SDL_WINDOW_SHOWN);
     if (!window) {
         return false;
     }
@@ -67,13 +79,25 @@ bool Game::init() {
         return false;
     }
 
-    paddle.rect = {SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2, SCREEN_HEIGHT - PADDLE_HEIGHT - 10, PADDLE_WIDTH, PADDLE_HEIGHT};
+    SDL_GetWindowSize(window, &windowWidth, &windowHeight);
+
+    float scaleX = static_cast<float>(windowWidth) / SCREEN_WIDTH;
+    float scaleY = static_cast<float>(windowHeight) / SCREEN_HEIGHT;
+
+    paddle.rect = {windowWidth / 2 - static_cast<int>(PADDLE_WIDTH * scaleX) / 2, 
+                   windowHeight - static_cast<int>(PADDLE_HEIGHT * scaleY) - 10, 
+                   static_cast<int>(PADDLE_WIDTH * scaleX), 
+                   static_cast<int>(PADDLE_HEIGHT * scaleY)};
     paddle.color = {255, 255, 255, 255};
 
-    ball.rect = {SCREEN_WIDTH / 2 - BALL_SIZE / 2, SCREEN_HEIGHT / 2 - BALL_SIZE / 2, BALL_SIZE, BALL_SIZE};
+    ball.rect = {windowWidth / 2 - static_cast<int>(BALL_SIZE * scaleX) / 2, 
+                 windowHeight / 2 - static_cast<int>(BALL_SIZE * scaleY) / 2, 
+                 static_cast<int>(BALL_SIZE * scaleX), 
+                 static_cast<int>(BALL_SIZE * scaleY)};
     ball.color = {255, 255, 255, 255};
 
     createBricks();
+    scaleBricks();
 
     return true;
 }
@@ -83,9 +107,23 @@ void Game::createBricks() {
         for (int x = 0; x < 10; ++x) {
             GameObject brick;
             brick.rect = {x * (BRICK_WIDTH + 1), y * (BRICK_HEIGHT + 1) + 50, BRICK_WIDTH, BRICK_HEIGHT};
-            brick.color = {static_cast<Uint8>(rand() % 256), static_cast<Uint8>(rand() % 256), static_cast<Uint8>(rand() % 256), 255};
+            brick.color = {static_cast<Uint8>(rand() % 256), 
+                           static_cast<Uint8>(rand() % 256), 
+                           static_cast<Uint8>(rand() % 256), 255};
             bricks.push_back(brick);
         }
+    }
+}
+
+void Game::scaleBricks() {
+    float scaleX = static_cast<float>(windowWidth) / SCREEN_WIDTH;
+    float scaleY = static_cast<float>(windowHeight) / SCREEN_HEIGHT;
+
+    for (auto& brick : bricks) {
+        brick.rect.x = static_cast<int>(brick.rect.x * scaleX);
+        brick.rect.y = static_cast<int>(brick.rect.y * scaleY);
+        brick.rect.w = static_cast<int>(brick.rect.w * scaleX);
+        brick.rect.h = static_cast<int>(brick.rect.h * scaleY);
     }
 }
 
@@ -93,27 +131,29 @@ void Game::handleEvents() {
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) {
-            emscripten_cancel_main_loop();
+            quit = true;
         }
     }
 
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
-    paddle.rect.x = mouseX - PADDLE_WIDTH / 2;
+
+    float scaleX = static_cast<float>(windowWidth) / SCREEN_WIDTH;
+
+    paddle.rect.x = static_cast<int>(mouseX / scaleX) - paddle.rect.w / 2;
     if (paddle.rect.x < 0) paddle.rect.x = 0;
-    if (paddle.rect.x > SCREEN_WIDTH - PADDLE_WIDTH) paddle.rect.x = SCREEN_WIDTH - PADDLE_WIDTH;
+    if (paddle.rect.x > windowWidth - paddle.rect.w) paddle.rect.x = windowWidth - paddle.rect.w;
 }
 
 void Game::update() {
     ball.rect.x += ballSpeedX;
     ball.rect.y += ballSpeedY;
 
-    if (ball.rect.x <= 0 || ball.rect.x + BALL_SIZE >= SCREEN_WIDTH) ballSpeedX = -ballSpeedX;
+    if (ball.rect.x <= 0 || ball.rect.x + ball.rect.w >= windowWidth) ballSpeedX = -ballSpeedX;
     if (ball.rect.y <= 0) ballSpeedY = -ballSpeedY;
-    if (ball.rect.y + BALL_SIZE >= SCREEN_HEIGHT) {
-        // Reset ball position instead of quitting
-        ball.rect.x = SCREEN_WIDTH / 2 - BALL_SIZE / 2;
-        ball.rect.y = SCREEN_HEIGHT / 2 - BALL_SIZE / 2;
+    if (ball.rect.y + ball.rect.h >= windowHeight) {
+        ball.rect.x = windowWidth / 2 - ball.rect.w / 2;
+        ball.rect.y = windowHeight / 2 - ball.rect.h / 2;
         ballSpeedY = -ballSpeedY;
     }
 
@@ -150,20 +190,26 @@ void Game::render() {
     SDL_RenderPresent(renderer);
 }
 
-void mainloop() {
+void Game::mainloop(void* arg) {
+    Game* game = static_cast<Game*>(arg);
     game->handleEvents();
     game->update();
     game->render();
+    
+    if (game->quit) {
+        emscripten_cancel_main_loop();
+    }
+}
+
+void Game::runMainLoop() {
+    emscripten_set_main_loop_arg(Game::mainloop, this, 0, 1);
 }
 
 int main() {
-    game = new Game();
-    if (!game->init()) {
-        delete game;
+    Game game;
+    if (!game.init()) {
         return 1;
     }
-
-    emscripten_set_main_loop(mainloop, 0, 1);
-
+    game.runMainLoop();
     return 0;
 }
