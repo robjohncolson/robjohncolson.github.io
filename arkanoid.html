@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL Arkanoid</title>
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f0f0; }
+        canvas { border: 1px solid #000; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const gl = canvas.getContext('webgl');
+
+        if (!gl) {
+            alert('WebGL not supported');
+        }
+
+        const vsSource = `
+            attribute vec2 a_position;
+            uniform vec2 u_resolution;
+            void main() {
+                vec2 zeroToOne = a_position / u_resolution;
+                vec2 zeroToTwo = zeroToOne * 2.0;
+                vec2 clipSpace = zeroToTwo - 1.0;
+                gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+            }
+        `;
+
+        const fsSource = `
+            precision mediump float;
+            uniform vec4 u_color;
+            void main() {
+                gl_FragColor = u_color;
+            }
+        `;
+
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+
+        function createProgram(gl, vertexShader, fragmentShader) {
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error('Unable to initialize the shader program: ' + gl.getProgramInfoLog(program));
+                return null;
+            }
+            return program;
+        }
+
+        const vertexShader = createShader(gl, gl.VERTEX_SHADER, vsSource);
+        const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+        const program = createProgram(gl, vertexShader, fragmentShader);
+
+        const positionAttributeLocation = gl.getAttribLocation(program, "a_position");
+        const resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
+        const colorUniformLocation = gl.getUniformLocation(program, "u_color");
+
+        const positionBuffer = gl.createBuffer();
+
+        // Game variables
+        let paddleX = 350;
+        const paddleY = 550;
+        const paddleWidth = 100;
+        const paddleHeight = 10;
+        let ballX = 400;
+        let ballY = 300;
+        let ballSpeedX = 3;
+        let ballSpeedY = -3;
+        const ballSize = 10;
+        let score = 0;
+        let gameOver = false;
+
+        const bricks = [];
+        const brickRows = 5;
+        const brickColumns = 8;
+        const brickWidth = 80;
+        const brickHeight = 20;
+        const brickPadding = 10;
+        const brickOffsetTop = 30;
+        const brickOffsetLeft = 35;
+
+        for (let c = 0; c < brickColumns; c++) {
+            for (let r = 0; r < brickRows; r++) {
+                bricks.push({
+                    x: c * (brickWidth + brickPadding) + brickOffsetLeft,
+                    y: r * (brickHeight + brickPadding) + brickOffsetTop,
+                    width: brickWidth,
+                    height: brickHeight,
+                    active: true
+                });
+            }
+        }
+
+        function drawRect(x, y, width, height, color) {
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                x, y,
+                x + width, y,
+                x, y + height,
+                x, y + height,
+                x + width, y,
+                x + width, y + height,
+            ]), gl.STATIC_DRAW);
+
+            gl.uniform4fv(colorUniformLocation, color);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
+
+        function update() {
+            if (gameOver) return;
+
+            ballX += ballSpeedX;
+            ballY += ballSpeedY;
+
+            // Wall collision
+            if (ballX <= 0 || ballX >= canvas.width - ballSize) ballSpeedX *= -1;
+            if (ballY <= 0) ballSpeedY *= -1;
+
+            // Paddle collision
+            if (ballY + ballSize >= paddleY && ballX + ballSize >= paddleX && ballX <= paddleX + paddleWidth) {
+                ballSpeedY *= -1;
+            }
+
+            // Brick collision
+            for (let brick of bricks) {
+                if (brick.active && ballX < brick.x + brick.width && ballX + ballSize > brick.x &&
+                    ballY < brick.y + brick.height && ballY + ballSize > brick.y) {
+                    ballSpeedY *= -1;
+                    brick.active = false;
+                    score++;
+                }
+            }
+
+            // Game over
+            if (ballY >= canvas.height - ballSize) {
+                gameOver = true;
+            }
+        }
+
+        function draw() {
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            gl.useProgram(program);
+            gl.enableVertexAttribArray(positionAttributeLocation);
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height);
+
+            // Draw paddle
+            drawRect(paddleX, paddleY, paddleWidth, paddleHeight, [1, 0, 0, 1]);
+
+            // Draw ball
+            drawRect(ballX, ballY, ballSize, ballSize, [0, 1, 0, 1]);
+
+            // Draw bricks
+            for (let brick of bricks) {
+                if (brick.active) {
+                    drawRect(brick.x, brick.y, brick.width, brick.height, [0, 0, 1, 1]);
+                }
+            }
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            paddleX = e.clientX - rect.left - paddleWidth / 2;
+            paddleX = Math.max(0, Math.min(canvas.width - paddleWidth, paddleX));
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>
