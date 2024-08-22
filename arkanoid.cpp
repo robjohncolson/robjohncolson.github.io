@@ -138,9 +138,8 @@ void Game::handleEvents() {
     int mouseX, mouseY;
     SDL_GetMouseState(&mouseX, &mouseY);
 
-    float scaleX = static_cast<float>(windowWidth) / SCREEN_WIDTH;
-
-    paddle.rect.x = static_cast<int>(mouseX / scaleX) - paddle.rect.w / 2;
+    // Use the actual window width for paddle movement
+    paddle.rect.x = mouseX - paddle.rect.w / 2;
     if (paddle.rect.x < 0) paddle.rect.x = 0;
     if (paddle.rect.x > windowWidth - paddle.rect.w) paddle.rect.x = windowWidth - paddle.rect.w;
 }
