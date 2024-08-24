@@ -182,7 +182,7 @@
 
             // Draw bouncing ball and square
             drawBouncingBall();
-            drawBouncingSquare();
+
         }
 
         function calculateKinematicParameters() {
@@ -237,29 +237,6 @@
             ballContext.stroke();
         }
 
-        function drawBouncingSquare() {
-            const currentTime = audioContext.currentTime;
-            const beatDuration = 60 / tempo;
-            const progress = (currentTime % beatDuration) / beatDuration;
-            
-            // Adjust the sine wave to have its minimum at 0
-            const squareY = 190 - 180 * Math.abs(Math.sin(Math.PI * progress));
-
-            // Clear canvas with inverted background color
-            squareContext.fillStyle = invertColor('#2a2a2a');
-            squareContext.fillRect(0, 0, squareCanvas.width, squareCanvas.height);
-
-            // Draw square
-            squareContext.fillStyle = invertColor(currentNoteColor || '#ffffff');
-            squareContext.fillRect(squareCanvas.width / 2 - 10, squareY - 10, 20, 20);
-
-            // Draw ground line
-            squareContext.beginPath();
-            squareContext.moveTo(0, 200);
-            squareContext.lineTo(400, 200);
-            squareContext.strokeStyle = '#000000';
-            squareContext.stroke();
-        }
 
         function invertColor(hex) {
             if (hex.indexOf('#') === 0) {
