@@ -72,9 +72,11 @@
         <canvas id="visualizer"></canvas>
         <canvas id="ballCanvas" width="400" height="200"></canvas>
         <canvas id="squareCanvas" width="400" height="200"></canvas>
+        
     </div>
 
     <script>
+        let leftBinauralOscillator, rightBinauralOscillator, leftBinauralGain, rightBinauralGain;
         let audioContext;
         let analyser;
         let visualizer;
@@ -263,27 +265,65 @@
             return (zeros + str).slice(-len);
         }
 
-        function scheduleNote(time, duration) {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+        function initializeBinauralBeats() {
+    leftBinauralOscillator = audioContext.createOscillator();
+    rightBinauralOscillator = audioContext.createOscillator();
+    leftBinauralGain = audioContext.createGain();
+    rightBinauralGain = audioContext.createGain();
 
-            oscillator.type = document.getElementById('oscillatorType').value;
-            const noteSelect = document.getElementById('noteSelect');
-            oscillator.frequency.value = bobbyFrequencies[noteSelect.value];
+    leftBinauralOscillator.type = 'sine';
+    rightBinauralOscillator.type = 'sine';
 
-            gainNode.gain.setValueAtTime(0.5, time);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, time + duration - 0.1);
+    leftBinauralGain.gain.value = 0.02;
+    rightBinauralGain.gain.value = 0.02;
 
-            oscillator.connect(gainNode);
-            gainNode.connect(analyser);
-            gainNode.connect(audioContext.destination);
+    const leftPanner = audioContext.createStereoPanner();
+    const rightPanner = audioContext.createStereoPanner();
+    leftPanner.pan.value = -1; // Full left
+    rightPanner.pan.value = 1; // Full right
 
-            oscillator.start(time);
-            oscillator.stop(time + duration);
+    leftBinauralOscillator.connect(leftBinauralGain);
+    rightBinauralOscillator.connect(rightBinauralGain);
+    leftBinauralGain.connect(leftPanner);
+    rightBinauralGain.connect(rightPanner);
+    leftPanner.connect(audioContext.destination);
+    rightPanner.connect(audioContext.destination);
 
-            // Update lastNoteTime for the bouncing ball
-            lastNoteTime = time;
-        }
+    leftBinauralOscillator.start();
+    rightBinauralOscillator.start();
+}
+
+
+function scheduleNote(time, duration) {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    // Original oscillator
+    oscillator.type = document.getElementById('oscillatorType').value;
+    const noteSelect = document.getElementById('noteSelect');
+    const selectedFrequency = bobbyFrequencies[noteSelect.value];
+    oscillator.frequency.value = selectedFrequency;
+
+    // Update binaural beat frequencies
+    leftBinauralOscillator.frequency.setValueAtTime(selectedFrequency * 8 - (tempo / 2 / 60), time);
+    rightBinauralOscillator.frequency.setValueAtTime(selectedFrequency * 8 + (tempo / 2 / 60), time);
+
+    // Main oscillator gain
+    gainNode.gain.setValueAtTime(0.5, time);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, time + duration - 0.1);
+
+    // Connect original oscillator
+    oscillator.connect(gainNode);
+    gainNode.connect(analyser);
+    gainNode.connect(audioContext.destination);
+
+    // Start and stop the main oscillator
+    oscillator.start(time);
+    oscillator.stop(time + duration);
+
+    // Update lastNoteTime for the bouncing ball
+    lastNoteTime = time;
+}
 
         function scheduler() {
             while (nextNoteTime < audioContext.currentTime + 0.1) {
@@ -300,47 +340,60 @@
             }
             schedulerTimer = setTimeout(scheduler, 25);
         }
-
         function toggleContinuousPlay() {
-            const playButton = document.getElementById('playButton');
-            
-            if (isContinuousPlay) {
-                clearTimeout(schedulerTimer);
-                isContinuousPlay = false;
-                playButton.textContent = 'Start Continuous Play';
-            } else {
-                if (!audioContext) {
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    analyser = audioContext.createAnalyser();
-                    analyser.connect(audioContext.destination);
-                    initializeVisualizer();
-                    drawVisualization();
-                }
+    const playButton = document.getElementById('playButton');
+    
+    if (isContinuousPlay) {
+        clearTimeout(schedulerTimer);
+        isContinuousPlay = false;
+        playButton.textContent = 'Start Continuous Play';
 
-                tempo = parseFloat(document.getElementById('tempo').value);
-                noteDuration = parseFloat(document.getElementById('duration').value);
-                silenceDuration = parseFloat(document.getElementById('silenceDuration').value);
-                
-                if (isNaN(tempo) || isNaN(noteDuration) || isNaN(silenceDuration)) {
-                    alert('Please enter valid numbers for tempo, note duration, and silence duration.');
-                    return;
-                }
-
-                if (tempo < 30 || tempo > 300) {
-                    alert('Tempo must be between 30 and 300 BPM.');
-                    return;
-                }
-
-                nextNoteTime = audioContext.currentTime;
-                lastNoteTime = nextNoteTime;
-                calculateKinematicParameters();
-                scheduler();
-
-                isContinuousPlay = true;
-                playButton.textContent = 'Stop Continuous Play';
-            }
+        // Stop the binaural oscillators
+        if (leftBinauralOscillator) {
+            leftBinauralOscillator.stop();
+            leftBinauralOscillator.disconnect();
+        }
+        if (rightBinauralOscillator) {
+            rightBinauralOscillator.stop();
+            rightBinauralOscillator.disconnect();
+        }
+        // Reset the oscillator variables
+        leftBinauralOscillator = rightBinauralOscillator = null;
+    } else {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            analyser.connect(audioContext.destination);
+            initializeVisualizer();
+            drawVisualization();
         }
 
+        // Initialize and start binaural beats
+        initializeBinauralBeats();
+
+        tempo = parseFloat(document.getElementById('tempo').value);
+        noteDuration = parseFloat(document.getElementById('duration').value);
+        silenceDuration = parseFloat(document.getElementById('silenceDuration').value);
+        
+        if (isNaN(tempo) || isNaN(noteDuration) || isNaN(silenceDuration)) {
+            alert('Please enter valid numbers for tempo, note duration, and silence duration.');
+            return;
+        }
+
+        if (tempo < 30 || tempo > 300) {
+            alert('Tempo must be between 30 and 300 BPM.');
+            return;
+        }
+
+        nextNoteTime = audioContext.currentTime;
+        lastNoteTime = nextNoteTime;
+        calculateKinematicParameters();
+        scheduler();
+
+        isContinuousPlay = true;
+        playButton.textContent = 'Stop Continuous Play';
+    }
+}
         // Initialize the note select dropdown
         document.getElementById('noteSelect').addEventListener('change', updateFrequency);
         populateNoteSelect();
