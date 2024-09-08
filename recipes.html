@@ -2,54 +2,121 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=<device-width>, initial-scale=1.0">
-    <title>Recipes and Lifestyle</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elven Synthwave Recipe Collection</title>
+    <style>
+        body {
+            font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, serif;
+            line-height: 1.6;
+            color: #e0e0e0;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1a0b2e;
+            background-image: linear-gradient(to bottom, #1a0b2e, #251941);
+        }
+        header {
+            background-color: rgba(41, 21, 71, 0.8);
+            padding: 1rem;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 0 0 20px #ff00ff;
+        }
+        h1 {
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff;
+            font-size: 2.5em;
+        }
+        h2 {
+            color: #ff00ff;
+            border-bottom: 2px solid #ff00ff;
+            padding-bottom: 5px;
+            text-shadow: 0 0 5px #ff00ff;
+        }
+        .recipe-section {
+            margin-bottom: 2rem;
+            background-color: rgba(41, 21, 71, 0.6);
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+        a {
+            color: #00ffff;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        a:hover {
+            color: #ff00ff;
+            text-shadow: 0 0 5px #ff00ff;
+        }
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px #00ffff; }
+            50% { box-shadow: 0 0 20px #00ffff, 0 0 30px #ff00ff; }
+            100% { box-shadow: 0 0 5px #00ffff; }
+        }
+        .recipe-section:hover {
+            animation: glow 1.5s infinite alternate;
+        }
+    </style>
 </head>
 <body>
-    <div class="header">food, etc</div>
-    <div class="container">
-       
-        <div class="item"> 
-            <div class="subheader">current</div>
-	    <p><a href="beef/index.html">curedbeefFilling</a></p>
-            <p><a href="mashpotato/index.html">mashpotato</a></p>
-            <p><a href="castille-soap/index.html">Castille Soap</a></p>
-            <p><a href="smoothie/index.html">BigBananaSmoothie</a></p>
-            <p><a href="eggwhite/index.html">Chinese almond-essence Milk Egg White dessert</a></p>
-            <p><a href="dutch-oven-bread/index.html">Dutch Oven Bread</a></p>                
-            <p><a href="cransauce/index.html">cran sauce</a></p>                
-            <p><a href="dutchbaby/index.html">DutchBaby</a></p>                
-            <p><a href="papaya/index.html">papaya salad</a></p>                
-            <p><a href="tartare/index.html">raw meatloaf</a></p>                
-        </div>
+    <header>
+        <h1>Elven Synthwave Recipe Collection</h1>
+    </header>
+    
+    <main>
+        <section class="recipe-section">
+            <h2>Current Recipes</h2>
+            <ul>
+                <li><a href="beef/index.html">Cured Beef Filling</a></li>
+                <li><a href="mashpotato/index.html">Mashed Potato</a></li>
+                <li><a href="castille-soap/index.html">Castille Soap</a></li>
+                <li><a href="smoothie/index.html">Big Banana Smoothie</a></li>
+                <li><a href="eggwhite/index.html">Chinese Almond-Essence Milk Egg White Dessert</a></li>
+                <li><a href="dutch-oven-bread/index.html">Dutch Oven Bread</a></li>
+                <li><a href="cransauce/index.html">Cranberry Sauce</a></li>
+                <li><a href="dutchbaby/index.html">Dutch Baby</a></li>
+                <li><a href="papaya/index.html">Papaya Salad</a></li>
+                <li><a href="tartare/index.html">Raw Meatloaf (Tartare)</a></li>
+            </ul>
+        </section>
 
-        
+        <section class="recipe-section">
+            <h2>Other</h2>
+            <ul>
+                <li><a href="lifestyle-habits/index.html">Lifestyle Habits</a></li>
+            </ul>
+        </section>
 
-        <div class="item">
-            <div class="subheader">other</div>
-            <p><a href="lifestyle-habits/index.html">Lifestyle Habits</a></p>
-        </div>
-<div class="item">
-            <div class="subheader">not current</div>
-            <p><a href="">Garlic Parsley Olive Oil Dip</a></p>
-            <p><a href="minerals/index.html">Minerals</a></p>
-            <p><a href="hairspray/index.html">Hairspray</a></p>
-            <p><a href="toothpaste/index.html">Toothpastes</a></p>
-            <p><a href="soap-nuts/index.html">Ready-to-Use Soap Nuts</a></p> 
-            <p><a href="khichdi/index.html">Khichdi</a></p>
-            <s><p><a href="saffron-rice/index.html">Saffron Rice</a></p></s>
-            <p><a href="chana-masala/index.html">Chana Masala</a></p>
-            <p><a href="lebanese-sandwich/index.html"> Lebanese Sandwich</a></p>
-            <p><a href="beans/index.html"> Beans</a></p>
-            <p><a href="greenpea-soup/index.html">Greenpea Soup</a></p>
-            <p><a href="granola/index.html">Maple Syrup Granola</a></p>
-            <p><a href="https://afoodloverskitchen.com/pear-gorgonzola-salad/" target="_blank">Pear & Gorgonzola Salad</a></p>
-            <p><a href="https://www.simplyrecipes.com/recipes/sour_cream_pie_crust/" target="_blank">Pie Crust Recipe</a></p>
-            <p><a href="https://www.simplyrecipes.com/recipes/pear_tarte_tatin/" target="_blank">Pear Tart Tatin (use crust recipe above)</a></p>
-            <p><a href="irish-soda-bread/index.html">Irish Soda Bread</a></p>
-            <p><a href="cornpop/index.html">Cornpop</a></p>
-        </div>
+        <section class="recipe-section">
+            <h2>Archived Recipes</h2>
+            <ul>
+                <li>Garlic Parsley Olive Oil Dip</li>
+                <li><a href="minerals/index.html">Minerals</a></li>
+                <li><a href="hairspray/index.html">Hairspray</a></li>
+                <li><a href="toothpaste/index.html">Toothpastes</a></li>
+                <li><a href="soap-nuts/index.html">Ready-to-Use Soap Nuts</a></li>
+                <li><a href="khichdi/index.html">Khichdi</a></li>
+                <li><a href="saffron-rice/index.html">Saffron Rice</a></li>
+                <li><a href="chana-masala/index.html">Chana Masala</a></li>
+                <li><a href="lebanese-sandwich/index.html">Lebanese Sandwich</a></li>
+                <li><a href="beans/index.html">Beans</a></li>
+                <li><a href="greenpea-soup/index.html">Green Pea Soup</a></li>
+                <li><a href="granola/index.html">Maple Syrup Granola</a></li>
+                <li><a href="https://afoodloverskitchen.com/pear-gorgonzola-salad/" target="_blank">Pear & Gorgonzola Salad</a></li>
+                <li><a href="https://www.simplyrecipes.com/recipes/sour_cream_pie_crust/" target="_blank">Pie Crust Recipe</a></li>
+                <li><a href="https://www.simplyrecipes.com/recipes/pear_tarte_tatin/" target="_blank">Pear Tart Tatin (use crust recipe above)</a></li>
+                <li><a href="irish-soda-bread/index.html">Irish Soda Bread</a></li>
+                <li><a href="cornpop/index.html">Cornpop</a></li>
+            </ul>
+        </section>
+    </main>
 </body>
-</html>
+</html>w
