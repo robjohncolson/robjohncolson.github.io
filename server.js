@@ -1,42 +1,47 @@
-const WebSocket = require('ws');
-const Blockchain = require('./blockchain');  // Assuming blockchain logic is in a separate file
+const express = require('express');
+const app = express();
+const port = 3000;
 
-// Create a WebSocket server on port 8080
-const wss = new WebSocket.Server({ port: 8080 });
-let blockchain = new Blockchain();
+app.use(express.json());
 
-wss.on('connection', (ws) => {
-    console.log('A student or teacher connected');
+let passRequests = [];  // In-memory database to store pass requests
 
-    // Send the entire blockchain to the newly connected client
-    ws.send(JSON.stringify({ type: 'sync', blockchain: blockchain.chain }));
+// Endpoint to submit a new pass request (POST)
+app.post('/pass-request', (req, res) => {
+    const { studentName, passType } = req.body;
+    const newPassRequest = {
+        id: passRequests.length + 1,  // Unique ID
+        studentName: studentName,
+        passType: passType,
+        status: 'Pending',  // All new requests start as 'Pending'
+        timestamp: new Date().toISOString(),
+    };
 
-    // Listen for messages from students/teacher
-    ws.on('message', (message) => {
-        const data = JSON.parse(message);
+    passRequests.push(newPassRequest);
+    res.status(201).json({ message: 'Pass request submitted successfully', request: newPassRequest });
+});
 
-        if (data.type === 'new_block') {
-            // Add a new block for the student's pass request
-            const newBlock = data.block;
-            blockchain.addBlock(newBlock);
-            console.log('New block added to the blockchain:', newBlock);
+// Endpoint to get all pass requests (GET)
+app.get('/pass-requests', (req, res) => {
+    res.json(passRequests);
+});
 
-            // Broadcast the new block to all other clients
-            wss.clients.forEach(client => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({ type: 'new_block', block: newBlock }));
-                }
-            });
-        } else if (data.type === 'view_block') {
-            // Teacher viewed the pass request
-            console.log('Teacher viewed block:', data.blockIndex);
+// Endpoint to approve or deny a pass request (PATCH)
+app.patch('/pass-request/:id', (req, res) => {
+    const requestId = parseInt(req.params.id);
+    const { status } = req.body;  // 'Approved' or 'Denied'
 
-            // Broadcast the view event to all clients, especially the student
-            wss.clients.forEach(client => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({ type: 'block_viewed', blockIndex: data.blockIndex }));
-                }
-            });
-        }
-    });
+    const requestIndex = passRequests.findIndex(r => r.id === requestId);
+    if (requestIndex === -1) {
+        return res.status(404).json({ message: 'Pass request not found' });
+    }
+
+    // Update the status of the request
+    passRequests[requestIndex].status = status;
+    res.json({ message: `Pass request ${status.toLowerCase()}`, request: passRequests[requestIndex] });
+});
+
+// Start the server
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
 });
