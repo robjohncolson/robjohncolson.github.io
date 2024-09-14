@@ -1,4 +1,4 @@
-const socket = new WebSocket('ws://random-string.ngrok.io');  // Update to use Ngrok URL
+const socket = new WebSocket('https://c881-73-16-30-214.ngrok-free.app');  // Update to use Ngrok URL
 
 let blockchain = [];
 let currentUser = '';
