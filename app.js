@@ -1,8 +1,27 @@
-// Initialize Gun (default: works peer-to-peer in browser)
-const gun = Gun();
+// Firebase configuration (from your Firebase project setup)
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-analytics.js";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Gun database for pass requests
-const passRequests = gun.get('pass-requests');
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBogRWfXMcTcNJ-HomATjBPAtGOQC8hzKY",
+  authDomain: "passmanagementsystem.firebaseapp.com",
+  projectId: "passmanagementsystem",
+  storageBucket: "passmanagementsystem.appspot.com",
+  messagingSenderId: "1005886377912",
+  appId: "1:1005886377912:web:61cb2ae14852fa3106094d",
+  measurementId: "G-HXGNV64DFP"
+};
+
+
+// Initialize Firebase
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 // Simple login logic
 let currentUser = localStorage.getItem('currentUser'); // Check if user is logged in
@@ -69,27 +88,20 @@ document.getElementById('request-pass').addEventListener('click', function() {
             message: '' // Message field for any notes from the teacher
         };
 
-        // Store the pass request in Gun.js database
-        passRequests.set(request);
+        // Store the pass request in Firebase
+        db.ref('passRequests').push(request);
     }
 });
 
 // Listen for all pass requests (teacher view) and update in real-time
 function listenForPassRequests() {
-    passRequests.map().on((request, id) => {
+    db.ref('passRequests').on('value', (snapshot) => {
         const passList = document.getElementById('pass-list');
-        const existingItem = document.getElementById(id);
+        passList.innerHTML = ''; // Clear the list before adding updates
+        snapshot.forEach((childSnapshot) => {
+            const request = childSnapshot.val();
+            const id = childSnapshot.key;
 
-        // If the request is deleted (approved/retracted/denied), remove it from the list
-        if (!request) {
-            if (existingItem) {
-                existingItem.remove();
-            }
-            return;
-        }
-
-        // If the request is new, add it to the list
-        if (!existingItem) {
             const listItem = document.createElement('li');
             listItem.id = id;  // Set unique ID for the list item
             listItem.textContent = `${request.name} requested a ${request.pass} pass at ${request.time}`;
@@ -100,80 +112,27 @@ function listenForPassRequests() {
             approveButton.addEventListener('click', () => approveRequest(id));
             listItem.appendChild(approveButton);
 
-            // Deny button for teacher (with a message prompt)
+            // Deny button for teacher
             const denyButton = document.createElement('button');
             denyButton.textContent = 'Deny';
             denyButton.addEventListener('click', () => denyRequest(id));
             listItem.appendChild(denyButton);
 
             passList.appendChild(listItem);
-        }
+        });
     });
 }
 
 // Listen for only student's own pass requests and update in real-time
 function listenForStudentPassRequests(studentName) {
-    passRequests.map().on((request, id) => {
-        if (request && request.student === studentName) {
-            const studentPassList = document.getElementById('student-pass-list');
-            const existingItem = document.getElementById(id);
+    db.ref('passRequests').on('value', (snapshot) => {
+        const studentPassList = document.getElementById('student-pass-list');
+        studentPassList.innerHTML = ''; // Clear the list before adding updates
+        snapshot.forEach((childSnapshot) => {
+            const request = childSnapshot.val();
+            const id = childSnapshot.key;
 
-            // If the request is deleted, notify the student that the pass was approved/denied
-            if (!request && existingItem) {
-                existingItem.remove();
-                return;
-            }
-
-            // If the request is new or updated, add/update it in the list
-            if (!existingItem) {
+            if (request.student === studentName) {
                 const listItem = document.createElement('li');
                 listItem.id = id;  // Set unique ID for the list item
-                listItem.textContent = `You requested a ${request.pass} pass at ${request.time}. Status: ${request.status}`;
-                
-                if (request.message) {
-                    listItem.textContent += ` - Message from teacher: ${request.message}`;
-                }
-
-                // Retract button for students
-                const retractButton = document.createElement('button');
-                retractButton.textContent = 'Retract';
-                retractButton.addEventListener('click', () => retractRequest(id));
-                listItem.appendChild(retractButton);
-
-                studentPassList.appendChild(listItem);
-            } else {
-                // Update the status and message if the request already exists
-                existingItem.textContent = `You requested a ${request.pass} pass at ${request.time}. Status: ${request.status}`;
-                
-                if (request.message) {
-                    existingItem.textContent += ` - Message from teacher: ${request.message}`;
-                }
-            }
-        }
-    });
-}
-
-// Approve pass request (teacher)
-function approveRequest(id) {
-    passRequests.get(id).put({ status: 'Approved', message: '' }); // Update status to "Approved"
-    setTimeout(() => {
-        passRequests.get(id).put(null); // Remove the request after a delay
-    }, 1000); // Simulate delay to give students time to see "Approved" status
-}
-
-// Deny pass request (teacher with custom message)
-function denyRequest(id) {
-    const message = prompt("Enter a message for the student (optional):");
-    passRequests.get(id).put({ status: 'Denied', message: message || 'Pass denied' }); // Update status to "Denied"
-    setTimeout(() => {
-        passRequests.get(id).put(null); // Remove the request after a delay
-    }, 3000); // Allow the student time to see the denial message
-}
-
-// Retract pass request (student)
-function retractRequest(id) {
-    passRequests.get(id).put(null); // Remove the retracted request
-}
-
-// Logout logic
-document.getElementById('logout-button').add
+                listItem.textContent = `You requested a ${request.pass} pass at ${request.time}. Status
