@@ -1,17 +1,13 @@
-// Create a WebSocket connection
-const socket = new WebSocket('https://8dd0-73-16-30-214.ngrok-free.app');  // Ensure this URL matches your WebSocket server
+const socket = new WebSocket('ws://random-string.ngrok.io');  // Update to use Ngrok URL
 
 let blockchain = [];
 let currentUser = '';
+let viewedBlocks = new Set();  // To track which blocks have been viewed by the teacher
 
 // Log WebSocket connection status
 socket.onopen = function() {
     console.log('WebSocket connection established');
-};
-
-// Handle errors with the WebSocket connection
-socket.onerror = function(error) {
-    console.error('WebSocket Error:', error);
+    alert('Connected to the server. Blockchain sync will start soon.');
 };
 
 // Handle incoming messages from the WebSocket server
@@ -23,11 +19,16 @@ socket.onmessage = function(event) {
     if (data.type === 'sync') {
         // Synchronize the blockchain
         blockchain = data.blockchain;
-        displayPassRequests();
+        alert('Blockchain synced successfully');
+        displayPassRequests();  // Call the function to display requests after sync
     } else if (data.type === 'new_block') {
         // Add the new block to the local blockchain
         blockchain.push(data.block);
-        displayPassRequests();
+        displayPassRequests();  // Call the function to update the displayed requests
+    } else if (data.type === 'block_viewed') {
+        // Mark the block as viewed by the teacher
+        viewedBlocks.add(data.blockIndex);
+        displayPassRequests();  // Update the view for all clients
     }
 };
 
@@ -41,53 +42,9 @@ document.getElementById('login-button').addEventListener('click', () => {
 
         if (currentUser.toLowerCase() === 'teacher') {
             document.getElementById('teacher-view').style.display = 'block';  // Show teacher view
-            displayPassRequests();
+            displayPassRequests();  // Call the function to display requests when the teacher logs in
         } else {
             document.getElementById('student-view').style.display = 'block';  // Show student view
         }
     } else {
-        alert('Please enter your name to login');
-        console.log('No name entered');
-    }
-});
-
-// Function to submit a pass request (Student)
-document.getElementById('submit-pass').addEventListener('click', () => {
-    const passType = document.getElementById('pass-type').value;
-
-    if (passType) {
-        const newBlock = {
-            index: blockchain.length,
-            timestamp: new Date().toISOString(),
-            data: {
-                studentName: currentUser,
-                passType: passType,
-                status: 'Pending',
-            },
-            previousHash: blockchain.length ? blockchain[blockchain.length - 1].hash : '0',
-            hash: (blockchain.length + new Date().toISOString() + passType).toString()
-        };
-
-        blockchain.push(newBlock);
-
-        // Send the new block to the WebSocket server
-        socket.send(JSON.stringify({ type: 'new_block', block: newBlock }));
-        console.log('Pass request submitted:', newBlock);  // Debug log
-
-        displayPassRequests();
-    } else {
-        alert('Please select a pass type');
-    }
-});
-
-// Display pass requests (Teacher and Student views)
-function displayPassRequests() {
-    const passList = document.getElementById(currentUser.toLowerCase() === 'teacher' ? 'pass-list' : 'student-pass-list');
-    passList.innerHTML = '';  // Clear the list
-
-    blockchain.forEach(block => {
-        const listItem = document.createElement('li');
-        listItem.textContent = `${block.data.studentName} requested ${block.data.passType} at ${new Date(block.timestamp).toLocaleTimeString()} - Status: ${block.data.status}`;
-        passList.appendChild(listItem);
-    });
-}
+   
