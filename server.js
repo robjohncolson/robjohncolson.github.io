@@ -1,10 +1,32 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
 const app = express();
 const port = 3000;
+const filePath = './passRequests.json';  // Path to the JSON file for persistence
 
 app.use(express.json());
+app.use(express.static('public'));  // Serve static files from the 'public' folder
 
-let passRequests = [];  // In-memory database to store pass requests
+let passRequests = [];
+
+// Load pass requests from JSON file when the server starts
+const loadPassRequests = () => {
+    if (fs.existsSync(filePath)) {
+        const data = fs.readFileSync(filePath);
+        passRequests = JSON.parse(data);
+    } else {
+        passRequests = [];
+    }
+};
+
+// Save pass requests to the JSON file
+const savePassRequests = () => {
+    fs.writeFileSync(filePath, JSON.stringify(passRequests, null, 2));
+};
+
+// Call the function to load requests when the server starts
+loadPassRequests();
 
 // Endpoint to submit a new pass request (POST)
 app.post('/pass-request', (req, res) => {
@@ -18,6 +40,7 @@ app.post('/pass-request', (req, res) => {
     };
 
     passRequests.push(newPassRequest);
+    savePassRequests();  // Save the updated pass requests to the file
     res.status(201).json({ message: 'Pass request submitted successfully', request: newPassRequest });
 });
 
@@ -38,6 +61,7 @@ app.patch('/pass-request/:id', (req, res) => {
 
     // Update the status of the request
     passRequests[requestIndex].status = status;
+    savePassRequests();  // Save the updated pass requests to the file
     res.json({ message: `Pass request ${status.toLowerCase()}`, request: passRequests[requestIndex] });
 });
 
