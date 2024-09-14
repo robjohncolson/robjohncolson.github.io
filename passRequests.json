@@ -3,7 +3,14 @@
     "id": 1,
     "studentName": "bobby",
     "passType": "Bathroom",
-    "status": "Pending",
+    "status": "Denied",
     "timestamp": "2024-09-14T03:33:55.450Z"
+  },
+  {
+    "id": 2,
+    "studentName": "bilbo",
+    "passType": "Bathroom",
+    "status": "Approved",
+    "timestamp": "2024-09-14T03:37:07.547Z"
   }
 ]
