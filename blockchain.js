@@ -1,10 +1,20 @@
 class Block {
-    constructor(index, previousHash, timestamp, data, hash) {
+    constructor(index, timestamp, data, previousHash = '') {
         this.index = index;
-        this.previousHash = previousHash;
         this.timestamp = timestamp;
         this.data = data;
-        this.hash = hash;
+        this.previousHash = previousHash;
+        this.hash = this.calculateHash();
+    }
+
+    // Simple hash function (you can replace with SHA256 or another algorithm)
+    calculateHash() {
+        return (
+            this.index + 
+            this.timestamp + 
+            JSON.stringify(this.data) + 
+            this.previousHash
+        ).toString();
     }
 }
 
@@ -14,41 +24,34 @@ class Blockchain {
     }
 
     createGenesisBlock() {
-        return new Block(0, "0", new Date().toISOString(), "Genesis Block", this.calculateHash(0, "0", new Date().toISOString(), "Genesis Block"));
-    }
-
-    calculateHash(index, previousHash, timestamp, data) {
-        return CryptoJS.SHA256(index + previousHash + timestamp + JSON.stringify(data)).toString();
-    }
-
-    addBlock(newBlock) {
-        newBlock.previousHash = this.getLatestBlock().hash;
-        newBlock.hash = this.calculateHash(newBlock.index, newBlock.previousHash, newBlock.timestamp, newBlock.data);
-        this.chain.push(newBlock);
+        return new Block(0, '01/01/2024', 'Genesis Block', '0');
     }
 
     getLatestBlock() {
         return this.chain[this.chain.length - 1];
     }
+
+    addBlock(newBlock) {
+        newBlock.previousHash = this.getLatestBlock().hash;
+        newBlock.hash = newBlock.calculateHash();
+        this.chain.push(newBlock);
+    }
+
+    isChainValid() {
+        for (let i = 1; i < this.chain.length; i++) {
+            const currentBlock = this.chain[i];
+            const previousBlock = this.chain[i - 1];
+
+            if (currentBlock.hash !== currentBlock.calculateHash()) {
+                return false;
+            }
+
+            if (currentBlock.previousHash !== previousBlock.hash) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
 
-const blockchain = new Blockchain();
-
-function addBlock() {
-    const latestBlock = blockchain.getLatestBlock();
-    const index = latestBlock.index + 1;
-    const timestamp = new Date().toISOString();
-    const data = `Block ${index} data`;
-    const newBlock = new Block(index, latestBlock.hash, timestamp, data, '');
-    blockchain.addBlock(newBlock);
-    displayBlockchain();
-}
-
-function displayBlockchain() {
-    const output = document.getElementById('output');
-    output.textContent = JSON.stringify(blockchain.chain, null, 4);
-}
-
-// Display initial blockchain
-displayBlockchain();
-
+let passChain = new Blockchain();
