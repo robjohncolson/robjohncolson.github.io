@@ -3,84 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homepage</title>
-    <style>
-        body {
-            font-family: 'Courier New', Courier, monospace;
-            background: linear-gradient(135deg, #2a2a72, #009ffd); /* Neon gradient background */
-            color: #ffffff; /* White text for high contrast */
-            text-align: center;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            max-width: 800px;
-            margin: 5% auto;
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); /* Neon glow effect */
-        }
-        h1 {
-            color: #ff0081; /* Neon Pink */
-            margin-bottom: 1em;
-            font-size: 36px; /* Large font size for impact */
-            text-shadow: 0 0 5px #ff0081, 0 0 10px #ff0081; /* Neon text glow */
-        }
-        .links {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: auto; /* Adjust to auto for better flexibility */
-            gap: 1.5em; /* Increased spacing between links */
-            margin-bottom: 2em; /* Added margin to prevent collision with credits */
-        }
-        .link-wrapper {
-            width: 80%; /* Adjusted width for layout */
-            max-width: 400px;
-        }
-        a {
-            display: block;
-            padding: 15px;
-            text-decoration: none;
-            color: #000000; /* Black text for contrast */
-            background: linear-gradient(135deg, #ff0081, #ff8c00); /* Neon gradient background */
-            border-radius: 5px;
-            font-size: 20px; /* Larger font size for readability */
-            font-weight: bold;
-            text-align: center;
-            transition: background 0.3s, transform 0.3s;
-            box-shadow: 0 0 10px rgba(255, 105, 180, 0.8); /* Neon button glow */
-        }
-        a:hover {
-            background: linear-gradient(135deg, #ff8c00, #ff0081); /* Reversed gradient on hover */
-            transform: scale(1.05); /* Slightly scale up on hover */
-        }
-        .credits {
-            margin-top: 30px; /* Increased margin to add space between links and credits */
-            font-size: 14px;
-            color: #b0b0b0; /* Light gray for credits */
-        }
-        .credits p {
-            margin: 5px 0;
-        }
-    </style>
+    <title>Pass Management App</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Add Gun.js via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to the Homepage</h1>
-        <div class="links">
-            <div class="link-wrapper"><a href="wasmarkanoid.html">WebAssemblyArkanoid</a></div>
-            <div class="link-wrapper"><a href="tetris.html">Tetris</a></div>
-            <div class="link-wrapper"><a href="recipes.html">Recipes</a></div>
-            <div class="link-wrapper"><a href="audio.html">Audio</a></div>
-            <div class="link-wrapper"><a href="MondayBLookets.html">Blookets-for-Monday</a></div>
-        </div>
-        <div class="credits">
-            <p>Design and Creative Direction by <strong>Bobby</strong></p>
-            <p>Technical Implementation by <strong>Aether</strong> – An advanced AI assistant developed by OpenAI</p>
-        </div>
+    <h1>Classroom Pass Management</h1>
+
+    <div id="login-form">
+        <label for="name">Enter Your Name:</label>
+        <input type="text" id="name" required>
+        <button id="login-button">Login</button>
     </div>
+
+    <div id="pass-form" style="display: none;">
+        <label for="pass-type">Select Pass Type:</label>
+        <select id="pass-type" required>
+            <option value="Bathroom">Bathroom</option>
+            <option value="Water Fountain">Water Fountain</option>
+            <option value="Guidance">Guidance</option>
+            <option value="Library">Library</option>
+            <option value="Main Office">Main Office</option>
+            <option value="Teen Health">Teen Health</option>
+            <option value="Other">Other</option>
+        </select>
+
+        <div id="other-pass" style="display: none;">
+            <label for="other-reason">Please specify:</label>
+            <input type="text" id="other-reason">
+        </div>
+
+        <button id="request-pass">Request Pass</button>
+
+        <h2>Your Requests</h2>
+        <ul id="student-pass-list"></ul>
+    </div>
+
+    <div id="teacher-view" style="display: none;">
+        <h2>Pending Requests</h2>
+        <ul id="pass-list"></ul>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
