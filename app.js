@@ -1,37 +1,99 @@
-// Use the JS version of IPFS
-const IPFS = require('ipfs');
-const OrbitDB = require('orbit-db');
+let orbitdb, db, currentUser;
 
-async function start() {
-  const ipfs = await IPFS.create();
-  const orbitdb = await OrbitDB.createInstance(ipfs);
+// Initialize IPFS and OrbitDB
+async function initOrbitDB() {
+    const ipfs = await Ipfs.create();  // Initialize IPFS
+    orbitdb = await OrbitDB.createInstance(ipfs);  // Initialize OrbitDB
+    db = await orbitdb.docs('classroom.pass', { indexBy: 'id' });  // Create or open the database
+    await db.load();  // Load the database
 
-  // Open or create the classroom pass database
-  const db = await orbitdb.docs('classroom.pass', { indexBy: 'id' });
-  await db.load();
-
-  // Function to add a pass request
-  async function addPassRequest() {
-    const id = Date.now().toString();
-    await db.put({
-      id,
-      studentName: 'Jane Doe',
-      passType: 'Bathroom',
-      status: 'Pending',
-      timestamp: new Date().toISOString(),
-    });
+    // Load all pass requests
     displayPassRequests();
-  }
-
-  // Function to display all pass requests
-  function displayPassRequests() {
-    const requests = db.get('');
-    const requestDiv = document.getElementById('pass-requests');
-    requestDiv.innerHTML = JSON.stringify(requests, null, 2);
-  }
-
-  document.getElementById('submit-pass').addEventListener('click', addPassRequest);
-  displayPassRequests();
 }
 
-start();
+// Login logic for teacher and student roles
+document.getElementById('login-button').addEventListener('click', () => {
+    currentUser = document.getElementById('name').value.trim();
+    document.getElementById('login-section').style.display = 'none';
+
+    if (currentUser.toLowerCase() === 'teacher') {
+        document.getElementById('teacher-view').style.display = 'block';
+        displayPassRequests();
+    } else {
+        document.getElementById('student-view').style.display = 'block';
+        listenForStudentPassRequests();
+    }
+});
+
+// Add pass request (Student)
+document.getElementById('submit-pass').addEventListener('click', async () => {
+    const passType = document.getElementById('pass-type').value;
+    let passReason = passType;
+
+    if (passType === 'Other') {
+        passReason = document.getElementById('other-reason').value.trim();
+    }
+
+    const id = Date.now().toString();  // Unique ID
+    await db.put({
+        id,
+        studentName: currentUser,
+        passType: passReason,
+        status: 'Pending',
+        timestamp: new Date().toISOString(),
+    });
+
+    displayPassRequests();
+});
+
+// Display all pass requests (Teacher)
+async function displayPassRequests() {
+    const requests = db.get('');
+    const passList = document.getElementById('pass-list');
+    passList.innerHTML = '';  // Clear list
+
+    requests.forEach(request => {
+        const listItem = document.createElement('li');
+        listItem.textContent = `${request.studentName} requested ${request.passType} at ${new Date(request.timestamp).toLocaleTimeString()} - Status: ${request.status}`;
+
+        if (currentUser.toLowerCase() === 'teacher' && request.status === 'Pending') {
+            const approveButton = document.createElement('button');
+            approveButton.textContent = 'Approve';
+            approveButton.addEventListener('click', () => updatePassStatus(request.id, 'Approved'));
+            listItem.appendChild(approveButton);
+
+            const denyButton = document.createElement('button');
+            denyButton.textContent = 'Deny';
+            denyButton.addEventListener('click', () => updatePassStatus(request.id, 'Denied'));
+            listItem.appendChild(denyButton);
+        }
+
+        passList.appendChild(listItem);
+    });
+}
+
+// Update pass request status (Teacher)
+async function updatePassStatus(id, status) {
+    const request = db.get(id)[0];
+    request.status = status;
+    await db.put(request);
+    displayPassRequests();
+}
+
+// Listen for student's own pass requests (Student)
+function listenForStudentPassRequests() {
+    const studentPassList = document.getElementById('student-pass-list');
+    const requests = db.get('');
+
+    studentPassList.innerHTML = '';  // Clear list
+    requests.forEach(request => {
+        if (request.studentName === currentUser) {
+            const listItem = document.createElement('li');
+            listItem.textContent = `${request.passType} at ${new Date(request.timestamp).toLocaleTimeString()} - Status: ${request.status}`;
+            studentPassList.appendChild(listItem);
+        }
+    });
+}
+
+// Initialize the app when the page loads
+initOrbitDB();

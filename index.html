@@ -1,12 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Classroom Pass System</title>
-  <script src="app.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Pass Management System</title>
+    <!-- Include the IPFS and OrbitDB libraries -->
+    <script src="https://unpkg.com/ipfs/dist/index.min.js"></script>
+    <script src="https://unpkg.com/orbit-db/dist/orbitdb.min.js"></script>
+    <script src="app.js"></script>
 </head>
 <body>
-  <h1>Classroom Pass System</h1>
-  <button id="submit-pass">Submit Pass Request</button>
-  <div id="pass-requests"></div>
+    <h1>Classroom Pass Management</h1>
+
+    <!-- Login Section -->
+    <div id="login-section">
+        <label for="name">Enter Your Name:</label>
+        <input type="text" id="name" required>
+        <button id="login-button">Login</button>
+    </div>
+
+    <!-- Student View -->
+    <div id="student-view" style="display: none;">
+        <h2>Submit a Pass Request</h2>
+        <label for="pass-type">Select Pass Type:</label>
+        <select id="pass-type" required>
+            <option value="Bathroom">Bathroom</option>
+            <option value="Water Fountain">Water Fountain</option>
+            <option value="Guidance">Guidance</option>
+            <option value="Library">Library</option>
+            <option value="Main Office">Main Office</option>
+            <option value="Other">Other</option>
+        </select>
+        <div id="other-pass" style="display: none;">
+            <label for="other-reason">Please specify:</label>
+            <input type="text" id="other-reason">
+        </div>
+        <button id="submit-pass">Submit Pass Request</button>
+
+        <h3>Your Submitted Pass Requests</h3>
+        <ul id="student-pass-list"></ul>
+    </div>
+
+    <!-- Teacher View -->
+    <div id="teacher-view" style="display: none;">
+        <h2>Pending Pass Requests</h2>
+        <ul id="pass-list"></ul>
+    </div>
+
 </body>
 </html>
