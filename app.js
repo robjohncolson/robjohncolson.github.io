@@ -1,5 +1,5 @@
 // Create a WebSocket connection
-const socket = new WebSocket('ws://localhost:8080');  // Ensure this URL matches your WebSocket server
+const socket = new WebSocket('ws://random-string.ngrok.io');  // Ensure this URL matches your WebSocket server
 
 let blockchain = [];
 let currentUser = '';
