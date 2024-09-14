@@ -14,14 +14,17 @@ async function initOrbitDB() {
 // Login logic for teacher and student roles
 document.getElementById('login-button').addEventListener('click', () => {
     currentUser = document.getElementById('name').value.trim();
-    document.getElementById('login-section').style.display = 'none';
 
-    if (currentUser.toLowerCase() === 'teacher') {
-        document.getElementById('teacher-view').style.display = 'block';
-        displayPassRequests();
-    } else {
-        document.getElementById('student-view').style.display = 'block';
-        listenForStudentPassRequests();
+    if (currentUser) {
+        document.getElementById('login-section').style.display = 'none';  // Hide login section
+
+        if (currentUser.toLowerCase() === 'teacher') {
+            document.getElementById('teacher-view').style.display = 'block';  // Show teacher view
+            displayPassRequests();
+        } else {
+            document.getElementById('student-view').style.display = 'block';  // Show student view
+            listenForStudentPassRequests();
+        }
     }
 });
 
@@ -34,7 +37,7 @@ document.getElementById('submit-pass').addEventListener('click', async () => {
         passReason = document.getElementById('other-reason').value.trim();
     }
 
-    const id = Date.now().toString();  // Unique ID
+    const id = Date.now().toString();  // Unique ID for each pass request
     await db.put({
         id,
         studentName: currentUser,
@@ -43,7 +46,7 @@ document.getElementById('submit-pass').addEventListener('click', async () => {
         timestamp: new Date().toISOString(),
     });
 
-    displayPassRequests();
+    listenForStudentPassRequests();
 });
 
 // Display all pass requests (Teacher)
