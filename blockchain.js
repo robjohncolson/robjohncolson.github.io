@@ -7,12 +7,11 @@ class Block {
         this.hash = this.calculateHash();
     }
 
-    // Simple hash function (you can replace with SHA256 or another algorithm)
     calculateHash() {
         return (
-            this.index + 
-            this.timestamp + 
-            JSON.stringify(this.data) + 
+            this.index +
+            this.timestamp +
+            JSON.stringify(this.data) +
             this.previousHash
         ).toString();
     }
@@ -54,4 +53,4 @@ class Blockchain {
     }
 }
 
-let passChain = new Blockchain();
+module.exports = Blockchain;
