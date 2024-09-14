@@ -175,5 +175,5 @@ function retractRequest(id) {
     passRequests.get(id).put(null); // Remove the retracted request
 }
 
-// Clear login state when needed (optional feature if you want to implement a logout button)
-// localStorage.removeItem('currentUser');
+// Logout logic
+document.getElementById('logout-button').add
